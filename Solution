@@ -1,0 +1,36 @@
+## Upload solution to Github
+
+# navigate to the directory
+data=pd.read_csv("https://raw.githubusercontent.com/CaitlinLloyd/Psychology_Programming2025/refs/heads/main/Data/DelayDisc_example.csv")
+
+# figure out whether left or right column is delayed (1 is left, 2 is right)
+data['delayed_opt']= "none"
+data.loc[data['delay_left'] < data['delay_right'], 'delayed_opt'] = 2.0
+data.loc[data['delay_left'] > data['delay_right'], 'delayed_opt'] = 1.0
+
+# figure out if delayed option was chosen
+data['delayed_opt_chose']= "none"
+data.loc[data['choice'] == data['delayed_opt'], 'delayed_opt_chose'] = 1
+data.loc[data['choice'] != data['delayed_opt'], 'delayed_opt_chose'] = 0
+
+# Figure out earnings for each trial
+data['earnings'] = "none"
+data.loc[(data['delayed_opt'] > 1.0) & (data['delayed_opt_chose'] == 1), 'earnings'] = data['money_right']
+data.loc[(data['delayed_opt'] > 1.0) & (data['delayed_opt_chose'] == 0), 'earnings'] = data['money_left']
+data.loc[(data['delayed_opt'] == 1.0) & (data['delayed_opt_chose'] == 1), 'earnings'] = data['money_left']
+data.loc[(data['delayed_opt'] == 1.0) & (data['delayed_opt_chose'] == 0), 'earnings'] = data['money_right']
+
+# modify high_block and valid_ratings
+for participant in range(1, 3):
+ for x in [1,0]:
+
+  high_block = data[(data['participant'] == participant) & (data['delayed_opt_chose'] == x)]
+
+  valid_ratings = high_block['earnings'].dropna()
+
+# Calculate the average earnings amount
+  average_earn = valid_ratings.mean()
+  print(f"Participant {participant}'s average earnings: {average_earn:.2f} for {x} trials")
+#print number of trials for delay chosen or not chosen
+  count = data['delayed_opt_chose'].value_counts()[x]
+  print(f"Participant {participant} chose {x} {count} times")
